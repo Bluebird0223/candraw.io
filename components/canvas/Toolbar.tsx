@@ -10,7 +10,7 @@ interface ToolbarProps {
 }
 
 const COLORS = [
-    '#000000', '#FF0000', '#00FF00', '#0000FF',
+    '#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF',
     '#FFFF00', '#FF00FF', '#00FFFF', '#FF8800'
 ];
 
@@ -31,7 +31,7 @@ export default function Toolbar({ onColorChange, onWidthChange, onClear, onShare
     };
 
     return (
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg p-4 flex gap-4 items-center z-20">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg p-4 flex gap-4 items-center z-20">
             {/* Colors */}
             <div className="flex gap-2">
                 {COLORS.map((c) => (
@@ -45,7 +45,7 @@ export default function Toolbar({ onColorChange, onWidthChange, onClear, onShare
                 ))}
             </div>
 
-            <div className="w-px h-8 bg-gray-300" />
+            <div className="w-px h-8 bg-zinc-800" />
 
             {/* Stroke widths */}
             <div className="flex gap-2 items-center">
@@ -53,18 +53,18 @@ export default function Toolbar({ onColorChange, onWidthChange, onClear, onShare
                     <button
                         key={w}
                         onClick={() => handleWidthChange(w)}
-                        className={`w-8 h-8 rounded flex items-center justify-center transition ${width === w ? 'bg-blue-100' : 'hover:bg-gray-100'
+                        className={`w-8 h-8 rounded flex items-center justify-center transition ${width === w ? 'bg-zinc-800' : 'hover:bg-zinc-800/50'
                             }`}
                     >
                         <div
-                            className="bg-black rounded-full"
+                            className="bg-white rounded-full"
                             style={{ width: w, height: w }}
                         />
                     </button>
                 ))}
             </div>
 
-            <div className="w-px h-8 bg-gray-300" />
+            <div className="w-px h-8 bg-zinc-800" />
 
             {/* Clear button */}
             <button
