@@ -14,7 +14,7 @@ export default function Canvas() {
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
     const [isMounted, setIsMounted] = useState(false);
 
-    const { isConnected, drawings, sendDrawing, clearCanvas } = useSocket();
+    const { isConnected, drawings, sendDrawing } = useSocket();
     // State for color and width
     const [strokeColor, setStrokeColor] = useState('#FFFFFF');
     const [strokeWidth, setStrokeWidth] = useState(2);
@@ -109,15 +109,6 @@ export default function Canvas() {
         setIsDrawing(false);
     };
 
-    const handleClear = () => {
-        setLines([]);
-        clearCanvas();
-        // Clear snapshot param if present
-        if (window.location.search.includes('snapshot')) {
-            window.history.pushState({}, '', '/');
-        }
-    };
-
     const handleShare = async () => {
         try {
             const res = await fetch('/api/snapshots', {
@@ -171,18 +162,10 @@ export default function Canvas() {
                 } text-white`}>
             </div>
 
-            {/* Clear button */}
-            <button
-                onClick={handleClear}
-                className="absolute top-4 right-4 z-10 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition cursor-none"
-            >
-                Clear Canvas
-            </button>
             <div className="cursor-none">
                 <Toolbar
                     onColorChange={setStrokeColor}
                     onWidthChange={setStrokeWidth}
-                    onClear={handleClear}
                     onShare={handleShare}
                 />
             </div>

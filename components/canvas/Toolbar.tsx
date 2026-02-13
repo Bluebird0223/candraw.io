@@ -5,7 +5,6 @@ import { useState } from 'react';
 interface ToolbarProps {
     onColorChange: (color: string) => void;
     onWidthChange: (width: number) => void;
-    onClear: () => void;
     onShare: () => void;
 }
 
@@ -16,7 +15,7 @@ const COLORS = [
 
 const WIDTHS = [2, 5, 10, 20];
 
-export default function Toolbar({ onColorChange, onWidthChange, onClear, onShare }: ToolbarProps) {
+export default function Toolbar({ onColorChange, onWidthChange, onShare }: ToolbarProps) {
     const [color, setColor] = useState(COLORS[0]);
     const [width, setWidth] = useState(WIDTHS[0]);
 
@@ -65,14 +64,6 @@ export default function Toolbar({ onColorChange, onWidthChange, onClear, onShare
             </div>
 
             <div className="w-px h-8 bg-zinc-800" />
-
-            {/* Clear button */}
-            <button
-                onClick={onClear}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
-            >
-                Clear
-            </button>
 
             {/* Share button */}
             <button

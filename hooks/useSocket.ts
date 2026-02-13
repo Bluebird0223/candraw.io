@@ -75,31 +75,9 @@ export function useSocket() {
         }
     };
 
-    const clearCanvas = async () => {
-        // 1. Broadcast clear event
-        if (channelRef.current) {
-            channelRef.current.send({
-                type: 'broadcast',
-                event: 'clear',
-                payload: {},
-            });
-        }
-
-        // 2. Clear local state
-        setDrawings([]);
-
-        // 3. Delete from Supabase
-        try {
-            await supabase.from('drawings').delete().neq('id', 0);
-        } catch (err) {
-            console.error('Error clearing drawings:', err);
-        }
-    };
-
     return {
         isConnected,
         drawings,
-        sendDrawing,
-        clearCanvas
+        sendDrawing
     };
 }
