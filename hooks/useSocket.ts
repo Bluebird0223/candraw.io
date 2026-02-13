@@ -1,74 +1,98 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import io, { Socket } from 'socket.io-client';
-
-let socketInstance: Socket | null = null;
+import { useEffect, useState, useRef } from 'react';
+import { supabase } from '@/lib/db/supabase';
 
 export function useSocket() {
     const [isConnected, setIsConnected] = useState(false);
     const [drawings, setDrawings] = useState<any[]>([]);
+    const channelRef = useRef<any>(null);
 
     useEffect(() => {
-        // Initialize socket connection
-        const initSocket = async () => {
-            // Ensure socket server is running
-            await fetch('/api/socket');
+        // Load initial drawings from Supabase
+        const loadInitialDrawings = async () => {
+            const { data, error } = await supabase
+                .from('drawings')
+                .select('*')
+                .order('created_at', { ascending: true });
 
-            if (!socketInstance) {
-                socketInstance = io({
-                    path: '/api/socket',
-                    addTrailingSlash: false,
-                });
+            if (!error && data) {
+                setDrawings(data);
             }
-
-            const socket = socketInstance;
-
-            socket.on('connect', () => {
-                console.log('Connected to socket server');
-                setIsConnected(true);
-            });
-
-            socket.on('initial-drawings', (initialDrawings) => {
-                setDrawings(initialDrawings);
-            });
-
-            socket.on('draw', (drawing) => {
-                setDrawings((prev) => [...prev, drawing]);
-            });
-
-            socket.on('clear', () => {
-                setDrawings([]);
-            });
-
-            socket.on('disconnect', () => {
-                console.log('Disconnected from socket server');
-                setIsConnected(false);
-            });
         };
 
-        initSocket();
+        loadInitialDrawings();
+
+        // Setup Realtime Channel
+        const channel = supabase.channel('global-canvas', {
+            config: {
+                broadcast: { self: false },
+            },
+        });
+
+        channel
+            .on('broadcast', { event: 'draw' }, ({ payload }) => {
+                setDrawings((prev) => [...prev, payload]);
+            })
+            .on('broadcast', { event: 'clear' }, () => {
+                setDrawings([]);
+            })
+            .subscribe((status) => {
+                console.log('Realtime status:', status);
+                if (status === 'SUBSCRIBED') {
+                    setIsConnected(true);
+                } else {
+                    setIsConnected(false);
+                }
+            });
+
+        channelRef.current = channel;
 
         return () => {
-            if (socketInstance) {
-                socketInstance.off('connect');
-                socketInstance.off('initial-drawings');
-                socketInstance.off('draw');
-                socketInstance.off('clear');
-                socketInstance.off('disconnect');
+            if (channelRef.current) {
+                supabase.removeChannel(channelRef.current);
             }
         };
     }, []);
 
-    const sendDrawing = (points: number[], color: string, width: number) => {
-        if (socketInstance && isConnected) {
-            socketInstance.emit('draw', { points, color, width });
+    const sendDrawing = async (points: number[], color: string, width: number) => {
+        const drawing = { points, color, width };
+
+        // 1. Broadcast to other users immediately
+        if (channelRef.current) {
+            channelRef.current.send({
+                type: 'broadcast',
+                event: 'draw',
+                payload: drawing,
+            });
+        }
+
+        // 2. Persist to Supabase
+        try {
+            await supabase.from('drawings').insert(drawing);
+        } catch (err) {
+            console.error('Error saving drawing:', err);
         }
     };
 
-    const clearCanvas = () => {
-        if (socketInstance && isConnected) {
-            socketInstance.emit('clear');
+    const clearCanvas = async () => {
+        // 1. Broadcast clear event
+        if (channelRef.current) {
+            channelRef.current.send({
+                type: 'broadcast',
+                event: 'clear',
+                payload: {},
+            });
+        }
+
+        // 2. Clear local state
+        setDrawings([]);
+
+        // 3. Delete from Supabase
+        try {
+            await supabase.from('drawings').delete().neq('id', 0);
+        } catch (err) {
+            console.error('Error clearing drawings:', err);
         }
     };
 
