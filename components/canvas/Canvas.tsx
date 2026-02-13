@@ -130,6 +130,12 @@ export default function Canvas() {
                 const url = `${window.location.origin}/?snapshot=${data.id}`;
                 navigator.clipboard.writeText(url);
                 alert('Snapshot link copied to clipboard: ' + url);
+
+                // Increase dimensions by 20px
+                setDimensions(prev => ({
+                    width: prev.width + 20,
+                    height: prev.height + 20
+                }));
             }
         } catch (err) {
             console.error('Failed to share', err);
@@ -141,7 +147,7 @@ export default function Canvas() {
 
     return (
         <div
-            className="relative w-screen h-screen overflow-hidden cursor-none"
+            className="relative w-screen h-screen overflow-auto cursor-none"
             onMouseMove={handleContainerMouseMove}
             onMouseEnter={() => setShowCursor(true)}
             onMouseLeave={() => setShowCursor(false)}
